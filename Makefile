@@ -64,8 +64,8 @@ LADSPAC = $(BACKENDC) ladspa_frontend.c
 INFOH = $(BACKENDH) xo_describe.h
 INFOC = $(BACKENDC) info_frontend.c xo_describe.c
 
-#BAKERH = $(BACKENDH)
-#BAKERC = $(BACKENDC) baker_frontend.c
+BAKERH = $(BACKENDH)
+BAKERC = $(BACKENDC) baker_frontend.c
 #################
 
 .PHONY: default
@@ -77,8 +77,8 @@ all: xo.so xo-info xo-baker
 xo-info: $(INFOC) $(INFOH)
 	$(CC) -o $@ $(ALLFLAGS) $(INFOC)
 
-#xo-baker: $(BAKERC) $(BAKERH)
-#	$(CC) -o $@ $(ALLFLAGS) $(BAKERC)
+xo-baker: $(BAKERC) $(BAKERH)
+	$(CC) -o $@ $(ALLFLAGS) $(BAKERC)
 
 xo.so: $(LADSPAC) $(LADSPAH)
 	$(CC) -o $@ $(LADSPAFLAGS) $(ALLFLAGS) $(LADSPAC)

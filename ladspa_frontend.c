@@ -33,9 +33,7 @@
 #endif
 
 #if BAKED_CHAINS
-extern size_t n_baked_chains;
-extern struct chain * baked_chains;
-//struct chain * get_baked_chains();
+struct xo * xo_add_baked_chains();
 #endif
 
 // max chains
@@ -103,11 +101,9 @@ static LADSPA_Handle instantiate(
     xo = xo_alloc();
 
 #if BAKED_CHAINS
-    if (n_baked_chains > 0) {
-        fprintf(stderr,
-                LABEL ": loading baked chains\n");
-        xo = xo_config_load_existing(NULL, baked_chains, n_baked_chains);
-    }
+    fprintf(stderr,
+            LABEL ": loading baked chains\n");
+    xo = xo_add_baked_chains(xo);
 #endif
 
     /*
