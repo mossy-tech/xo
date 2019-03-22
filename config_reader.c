@@ -117,8 +117,28 @@ struct xo * xo_config_load_file(struct xo * xo,
                     LABEL ": error, chain begins with unknown source type\n");
                 return NULL;
         }
+
+        enum filter_type type;
+
+        switch (line[1]) {
+            default:
+            case '\0':
+                fprintf(stderr,
+                    LABEL ": error, invalid input\n");
+                return NULL;
+
+            case 'B':
+                type = XO_FILTER_BQ;
+                break;
+            case 'L':
+                type = XO_FILTER_SV_LP;
+                break;
+            case 'H':
+                type = XO_FILTER_SV_HP;
+                break;
+        }
         
-        char * l = &line[1], * ln;
+        char * l = &line[2], * ln;
         for (size_t i = 0; i < 5; i++) {
             coefs[i] = CAT(strtof, FP)(l, &ln);
             if (l == ln) {
@@ -133,7 +153,7 @@ struct xo * xo_config_load_file(struct xo * xo,
                 xo_add_filter_to_chain(xo),
                 coefs[0], coefs[1], coefs[2],
                 coefs[3], coefs[4],
-                XO_FILTER_BQ);
+                type);
     }
     
     return xo;

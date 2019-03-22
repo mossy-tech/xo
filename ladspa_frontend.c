@@ -182,11 +182,13 @@ static void connect(LADSPA_Handle instance,
 static void activate(
     LADSPA_Handle instance)
 {
+    fprintf(stderr, LABEL ": activated.\n");
     // do nothing
 }
 
 static void deactivate(LADSPA_Handle instance)
 {
+    fprintf(stderr, LABEL ": deactivated.\n");
     xo_reset(((struct userdata *)instance)->xo);
 }
 
@@ -213,6 +215,7 @@ void cleanup(LADSPA_Handle instance)
     struct userdata * userdata = instance;
     xo_free(userdata->xo);
     free(userdata);
+    fprintf(stderr, LABEL ": cleaned up.\n");
 }
 
 extern const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
@@ -279,4 +282,7 @@ extern const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
     return desc;
 }
 
-
+__attribute__((destructor)) void bye()
+{
+    fprintf(stderr, LABEL ": bye\n");
+}

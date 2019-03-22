@@ -83,6 +83,11 @@ int xo_describe(struct xo * xo, printer_type printer, int printer_check_error, i
                     if (xo->chains[i].filters) {
                         PRINTER_AND_CHECK(TAB3 "filters[%zu]:\n", xo->chains[i].n_filters);
                         for (size_t j = 0; j < xo->chains[i].n_filters; j++) {
+                            PRINTER_AND_CHECK(TAB4 "type = %s\n",
+                                    xo->chains[i].filters[j].type == XO_FILTER_BQ ? "BQ" : 
+                                    xo->chains[i].filters[j].type == XO_FILTER_SV_LP ? "SV_LP" :
+                                    xo->chains[i].filters[j].type == XO_FILTER_SV_HP ? "SV_HP" :
+                                    "??");
                             PRINTER_AND_CHECK(TAB4 "[%zu] = {\n", j);
                             PRINTER_AND_CHECK(TAB5 "A0 = %s\n", coefstr(xo->chains[i].filters[j].a0));
                             PRINTER_AND_CHECK(TAB5 "A1 = %s\n", coefstr(xo->chains[i].filters[j].a1));
