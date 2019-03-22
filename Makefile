@@ -66,13 +66,16 @@ INFOC = $(BACKENDC) info_frontend.c xo_describe.c
 
 BAKERH = $(BACKENDH)
 BAKERC = $(BACKENDC) baker_frontend.c
+
+JACKH = $(BACKENDH)
+JACKC = $(BACKENDC) jack_frontend.c
 #################
 
 .PHONY: default
 default: xo.so
 
 .PHONY: all
-all: xo.so xo-info xo-baker
+all: xo.so xo-info xo-baker xo-jack
 
 xo-info: $(INFOC) $(INFOH)
 	$(CC) -o $@ $(ALLFLAGS) $(INFOC)
@@ -82,6 +85,9 @@ xo-baker: $(BAKERC) $(BAKERH)
 
 xo.so: $(LADSPAC) $(LADSPAH)
 	$(CC) -o $@ $(LADSPAFLAGS) $(LADSPAC)
+
+xo-jack: $(JACKC) $(JACKH)
+	$(CC) -o $@ $(ALLFLAGS) $(JACKC) -ljack
 
 gperf: cmd/keywords.txt cmd/mkgperf.sh
 	mkdir -p cmd/gen
@@ -102,6 +108,6 @@ install: xo.so
 
 .PHONY: clean
 clean:
-	rm -fv xo.so xo-info xo-baker
+	rm -fv xo.so xo-info xo-baker xo-jack
 
 
