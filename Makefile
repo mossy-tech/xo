@@ -51,7 +51,7 @@ endif
 ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS) -lm
 ALLFLAGS := $(strip $(ALLFLAGS))
 
-LADSPAFLAGS = -shared -fPIC $(LADSPADEFS)
+LADSPAFLAGS = -shared -fPIC $(LADSPADEFS) $(ALLFLAGS) -fno-sanitize=all
 ###############
 
 #### Sources ####
@@ -81,7 +81,7 @@ xo-baker: $(BAKERC) $(BAKERH)
 	$(CC) -o $@ $(ALLFLAGS) $(BAKERC)
 
 xo.so: $(LADSPAC) $(LADSPAH)
-	$(CC) -o $@ $(LADSPAFLAGS) $(ALLFLAGS) $(LADSPAC)
+	$(CC) -o $@ $(LADSPAFLAGS) $(LADSPAC)
 
 gperf: cmd/keywords.txt cmd/mkgperf.sh
 	mkdir -p cmd/gen
