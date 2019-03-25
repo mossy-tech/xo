@@ -119,4 +119,8 @@ struct xo * xo_config_load_file(struct xo * xo,
 struct xo * xo_config_load_existing(struct xo * xo,
         struct chain * chains, size_t n_chains);
 
+void xo_config_write_file(struct xo * xo,
+        FILE * fcfg);
+
+
 #endif /* XO_H */

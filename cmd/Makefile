@@ -80,13 +80,13 @@ default: cmd cli
 all: cmd cli
 
 cmd.gen.h: cmd.y
-	bison --defines=cmd.gen.h -o cmd.gen.c cmd.y
+	bison -Wall --defines=cmd.gen.h -o cmd.gen.c cmd.y
 
 keywords.gen.h: keywords.gperf cmd.gen.h
 	$(GPERF) keywords.gperf > keywords.gen.h
 
 cmd: keywords.gen.h lex.c lex.h main.c
-	$(CC) -o $@ $(ALLFLAGS) cmd.gen.c lex.c main.c ../xo.c ../xo_describe.c
+	$(CC) -o $@ $(ALLFLAGS) cmd.gen.c lex.c main.c ../xo.c ../xo_describe.c ../config_reader.c
 
 cli: cli.c
 	$(CC) -o $@ $(ALLFLAGS) cli.c

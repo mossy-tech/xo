@@ -32,6 +32,13 @@ void respond(int response)
     send(sock, &response, sizeof(response), 0);
 }
 
+static FILE * commit_target;
+
+void commit(struct xo * xo)
+{
+    xo_config_write_file(xo, commit_target);
+}
+
 static const char * sockpath = "/usr/local/share/xo/sock";
 
 int connect_client()
@@ -62,6 +69,17 @@ int connect_client()
 
 int main(int argc, char ** argv)
 {
+
+    if (argc <= 1) {
+        commit_target = stdout;
+    } else {
+        commit_target = fopen(argv[1], "w");
+        if (!commit_target) {
+            fprintf(stderr, "failed to open %s for writing, exiting.\n", argv[1]);
+            exit(1);
+        }
+    }
+
 //    atexit(cleanall);
     fprintf(stderr, "connecting to %s...\n", sockpath);
     sock = connect_client();
@@ -72,7 +90,7 @@ int main(int argc, char ** argv)
         fprintf(stderr, "connected.\n");
     }
 
-    struct xo * xo = NULL;
+    struct xo * xo = xo_alloc();
 
     char buf[1024];
     for (;;) {
