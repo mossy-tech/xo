@@ -74,24 +74,24 @@ JACKC = $(BACKENDC) jack_frontend.c
 GPERF ?= gperf
 
 .PHONY: default
-default: cmd cli
+default: xod xod-cli
 
 .PHONY: all
-all: cmd cli
+all: xod xod-cli
 
-cmd.gen.h: cmd.y
-	bison -Wall --defines=cmd.gen.h -o cmd.gen.c cmd.y
+xod.gen.h: xod.y
+	bison -Wall --defines=xod.gen.h -o xod.gen.c xod.y
 
-keywords.gen.h: keywords.gperf cmd.gen.h
+keywords.gen.h: keywords.gperf xod.gen.h
 	$(GPERF) keywords.gperf > keywords.gen.h
 
-cmd: keywords.gen.h lex.c lex.h main.c
-	$(CC) -o $@ $(ALLFLAGS) cmd.gen.c lex.c main.c ../xo.c ../xo_describe.c ../config_reader.c
+xod: keywords.gen.h lex.c lex.h main.c
+	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c main.c ../xo.c ../xo_describe.c ../config_reader.c
 
-cli: cli.c
+xod-cli: cli.c
 	$(CC) -o $@ $(ALLFLAGS) cli.c
 
 .PHONY: clean
 clean:
-	rm -fv cmd cli *.gen.*
+	rm -fv xod cli *.gen.*
 
