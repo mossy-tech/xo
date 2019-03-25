@@ -72,7 +72,7 @@ JACKC = $(BACKENDC) jack_frontend.c
 #################
 
 .PHONY: default
-default: xo.so
+default: xo.so xo-jack
 
 .PHONY: all
 all: xo.so xo-info xo-baker xo-jack cmd-all
