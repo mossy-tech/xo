@@ -103,6 +103,9 @@ struct xo * xo_config_load_file(struct xo * xo,
                     return NULL;
                 }
                 break;
+            case '0' ... '9':
+                xo_add_chain(xo, line[0] - '0');
+                break;
             case 'M':
                 xo_add_chain(xo, XO_MONO);
                 break;
@@ -169,5 +172,51 @@ struct xo * xo_config_load_existing(struct xo * xo,
     xo->n_chains = n_chains;
 
     return xo;
+}
+
+static const char * coefstr(float_type coef) {
+    static char s[256];
+    CAT(strfromf, FP)(s, sizeof(s), "%A", coef);
+    return s;
+}
+
+void xo_config_write_file(struct xo * xo,
+        FILE * fcfg)
+{
+    if (xo == NULL) {
+        return;
+    }
+    for (size_t i = 0; i < xo->n_chains; i++) {
+        struct chain * chain = &xo->chains[i];
+        for (size_t j = 0; j < chain->n_filters; j++) {
+            struct filter * filter = &chain->filters[j];
+            if (j == 0) {
+                fprintf(fcfg, "%c", '0' + (char)(chain->source % 10));
+            } else {
+                fprintf(fcfg, "^");
+            }
+            switch (filter->type) {
+                case XO_FILTER_BQ:
+                    fprintf(fcfg, "B ");
+                    break;
+                case XO_FILTER_SV_LP:
+                    fprintf(fcfg, "H ");
+                    break;
+                case XO_FILTER_SV_HP:
+                    fprintf(fcfg, "L ");
+                    break;
+                default:
+                    fprintf(stderr, "writer: warning, unknown filter type\n");
+                    fprintf(fcfg, "? ");
+                    break;
+            }
+            fprintf(fcfg, "%s %s %s %s %s\n",
+                    coefstr(filter->a0),
+                    coefstr(filter->a1),
+                    coefstr(filter->a2),
+                    coefstr(filter->b1),
+                    coefstr(filter->b2));
+        }
+    }
 }
 
