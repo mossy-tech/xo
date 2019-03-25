@@ -191,12 +191,14 @@ static void run(LADSPA_Handle instance,
 {
     struct userdata * userdata = instance;
 
+    /*
     if (userdata->data[2]) {
         if (userdata->data[2][0] != userdata->control_current[0]) {
             userdata->control_current[0] = userdata->data[2][0];
             calculate(userdata->xo, userdata->control_current[0], userdata->sample_rate);
         }
     }
+    */
 
     xo_process_chain(userdata->xo,
         userdata->data[0], userdata->data[1],
