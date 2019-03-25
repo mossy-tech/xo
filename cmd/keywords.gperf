@@ -1,0 +1,38 @@
+%struct-type
+%compare-strncmp
+%pic
+%enum
+%ignore-case
+
+%{
+#include <stddef.h>
+#include "cmd.gen.h"
+%}
+
+struct keyword {
+    int name;
+    enum yytokentype key;
+};
+
+%%
+BYE, KWD_BYE
+COMMIT, KWD_COMMIT
+GET, KWD_GET
+FP, KWD_FP
+IN, KWD_IN,
+OUT, KWD_OUT
+LIMITER, KWD_LIMITER
+NEW, KWD_NEW
+CHAIN, KWD_CHAIN
+FILTER, KWD_FILTER
+SV, KWD_SV
+LP, KWD_LP
+HP, KWD_HP
+BQ, KWD_BQ
+A, KWD_A
+B, KWD_B
+LEFT, KWD_LEFT
+RIGHT, KWD_RIGHT
+MONO, KWD_MONO
+%%
+

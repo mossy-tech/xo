@@ -51,7 +51,7 @@ endif
 ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS) -lm
 ALLFLAGS := $(strip $(ALLFLAGS))
 
-LADSPAFLAGS = -shared -fPIC $(LADSPADEFS) $(ALLFLAGS) -fno-sanitize=all
+LADSPAFLAGS = -shared -fPIC $(LADSPADEFS) $(ALLFLAGS)
 ###############
 
 #### Sources ####
@@ -71,38 +71,27 @@ JACKH = $(BACKENDH)
 JACKC = $(BACKENDC) jack_frontend.c
 #################
 
+GPERF ?= gperf
+
 .PHONY: default
-default: xo.so
+default: cmd cli
 
 .PHONY: all
-all: xo.so xo-info xo-baker xo-jack cmd-all
+all: cmd cli
 
-xo-info: $(INFOC) $(INFOH)
-	$(CC) -o $@ $(ALLFLAGS) $(INFOC)
+cmd.gen.h: cmd.y
+	bison --defines=cmd.gen.h -o cmd.gen.c cmd.y
 
-xo-baker: $(BAKERC) $(BAKERH)
-	$(CC) -o $@ $(ALLFLAGS) $(BAKERC)
+keywords.gen.h: keywords.gperf cmd.gen.h
+	$(GPERF) keywords.gperf > keywords.gen.h
 
-xo.so: $(LADSPAC) $(LADSPAH)
-	$(CC) -o $@ $(LADSPAFLAGS) $(LADSPAC)
+cmd: keywords.gen.h lex.c lex.h main.c
+	$(CC) -o $@ $(ALLFLAGS) cmd.gen.c lex.c main.c ../xo.c ../xo_describe.c
 
-xo-jack: $(JACKC) $(JACKH)
-	$(CC) -o $@ $(ALLFLAGS) $(JACKC) -ljack
-
-cmd:
-	$(MAKE) -C cmd
-
-cmd-all:
-	$(MAKE) -C cmd all
-
-.PHONY: install
-install: xo.so
-	#install -g audio -m775 -d /usr/local/share/xo
-	install -d -m755 /usr/local/lib/ladspa
-	install -m755 xo.so /usr/local/lib/ladspa/
+cli: cli.c
+	$(CC) -o $@ $(ALLFLAGS) cli.c
 
 .PHONY: clean
 clean:
-	$(MAKE) -C cmd clean
-	rm -fv xo.so xo-info xo-baker xo-jack
+	rm -fv cmd cli *.gen.*
 

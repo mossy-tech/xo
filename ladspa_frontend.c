@@ -98,30 +98,23 @@ static LADSPA_Handle instantiate(
     fprintf(stderr, LABEL ": LADSPA sample_rate = %lu\n", sample_rate);
 
     struct xo * xo;
-    xo = xo_alloc();
 
 #if BAKED_CHAINS
     fprintf(stderr,
             LABEL ": loading baked chains\n");
-    xo = xo_add_baked_chains(xo);
-#endif
-
-    /*
-    if (n_baked_chains > 0) {
-        fprintf(stderr,
-            LABEL ": loading baked chains\n");
-        xo = xo_config_load_existing(NULL, baked_chains, n_baked_chains);
-    } else {
-        FILE * f = xo_config_find(NULL);
-        xo = xo_config_load_file(NULL, f);
-        fclose(f);
+    xo = xo_add_baked_chains(NULL);
+#else
+    FILE * f = xo_config_find(NULL);
+    if (!f) {
+        return NULL;
     }
-
+    xo = xo_config_load_file(NULL, f);
     if (!xo) {
         return NULL;
     }
-    */
+#endif
 
+    /*
     float_type fc = DEFAULT_FC;
 
     xo_add_chain(xo, XO_LEFT);
@@ -140,6 +133,7 @@ static LADSPA_Handle instantiate(
     xo_add_filter_to_chain(xo);
 
     calculate(xo, fc, sample_rate);
+    */
 
     if (xo->n_chains > MAX_OUTPUTS) {
         fprintf(stderr,
@@ -151,7 +145,7 @@ static LADSPA_Handle instantiate(
     struct userdata * userdata = malloc(sizeof(*userdata));
     *userdata = (struct userdata) {
         .xo = xo,
-        .control_current = { fc },
+        .control_current = { 0. },
         .sample_rate = sample_rate
     };
 

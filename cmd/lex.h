@@ -15,15 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with xo.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef XO_DESCRIBE_H
+#ifndef LEX_H
+#define LEX_H
 
-#include "xo.h"
- 
-typedef int (*printer_type)(const char * formatter, ...)
-    __attribute__((format(printf, 1, 2)));
+#include <stddef.h>
 
-int xo_describe(struct xo * xo,
-        printer_type printer,
-        int printer_check_error, int printer_nonzero_is_error);
+struct token {
+    const char * start;
+    size_t length;
+};
 
-#endif /* XO_DESCRIBE_H */
+#include "cmd.gen.h"
+
+#endif /* LEX_H */
