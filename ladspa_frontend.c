@@ -55,40 +55,6 @@ struct userdata {
     float_type sample_rate;
 };
 
-static void calculate(struct xo * xo, float_type fc, float_type sample_rate)
-{
-    float_type q = M_SQRT1_2;
-
-    xo_filter_calculate_sv(
-            &xo->chains[0].filters[0],
-            fc, q, sample_rate,
-            XO_FILTER_SV_HP);
-    xo_filter_calculate_sv(
-            &xo->chains[0].filters[1],
-            fc, q, sample_rate,
-            XO_FILTER_SV_HP);
-
-    xo_filter_calculate_sv(
-            &xo->chains[1].filters[0],
-            fc, q, sample_rate,
-            XO_FILTER_SV_HP);
-    xo_filter_calculate_sv(
-            &xo->chains[1].filters[1],
-            fc, q, sample_rate,
-            XO_FILTER_SV_HP);
-
-    xo_filter_calculate_sv(
-            &xo->chains[2].filters[0],
-            fc, q, sample_rate,
-            XO_FILTER_SV_LP);
-    xo_filter_calculate_sv(
-            &xo->chains[2].filters[1],
-            fc, q, sample_rate,
-            XO_FILTER_SV_LP);
-
-    xo_filter_unity(&xo->chains[3].filters[0]);
-}
-
 static LADSPA_Handle instantiate(
         const LADSPA_Descriptor * desc,
         unsigned long sample_rate)
