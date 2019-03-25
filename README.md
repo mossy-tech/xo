@@ -8,9 +8,10 @@ acting as both a source and sink.
 There are at present two supported host types, both geared towards use
 on Linux:
  - LADSPA-capable hosts (e.g. ALSA)
- - (TODO) JACK hosts
-Of these, LADSPA is preferrable; it is most "plug and play" and likely
-used to back JACK regardless.
+ - JACK hosts
+
+Of these, LADSPA is preferable; it is most "plug and play" and likely
+ALSA is used to back JACK regardless.
 It is also likely that pulseaudio supports LADSPA plugins but this has
 been neither tested nor explored.
 Other operating systems and pro-audio tools may or may not support
@@ -30,6 +31,8 @@ A project, tentatively *xo-gui* is planned for a graphical client of
 this sort.
 
 ## Building
+
+*xo.so* and *xo-jack* are the primary outputs.
 
 ```
 make NDEBUG=1 && sudo make install
