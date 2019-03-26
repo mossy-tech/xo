@@ -2,5 +2,8 @@ xo-*
 xod-*
 *.so
 *.zip
+*.gen
+*.gen.*
 *.ignore
 *.ignore.*
+
