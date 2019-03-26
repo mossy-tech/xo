@@ -75,7 +75,7 @@ JACKC = $(BACKENDC) jack_frontend.c
 default: xo.so xo-jack
 
 .PHONY: all
-all: xo.so xo-info xo-baker xo-jack cmd-all
+all: xo.so xo-info xo-baker xo-jack xod-all
 
 xo-info: $(INFOC) $(INFOH)
 	$(CC) -o $@ $(ALLFLAGS) $(INFOC)
@@ -89,11 +89,11 @@ xo.so: $(LADSPAC) $(LADSPAH)
 xo-jack: $(JACKC) $(JACKH)
 	$(CC) -o $@ $(ALLFLAGS) $(JACKC) -ljack
 
-cmd:
-	$(MAKE) -C cmd
+xod:
+	$(MAKE) -C xod
 
-cmd-all:
-	$(MAKE) -C cmd all
+xod-all:
+	$(MAKE) -C xod all
 
 .PHONY: install
 install: xo.so
