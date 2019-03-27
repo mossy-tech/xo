@@ -30,8 +30,8 @@
 
 static const char * default_locations[] =
 {
-    "~/.xo/" LABEL ".xo",
-    "~/." LABEL ".xo",
+    //"~/.xo/" LABEL ".xo",
+    //"~/." LABEL ".xo",
     "/etc/xo/" LABEL ".xo",
     "/usr/local/share/xo/" LABEL ".xo",
     "/usr/share/xo/" LABEL ".xo",
