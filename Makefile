@@ -49,7 +49,7 @@ else
 	SANITIZE := -fsanitize=address,undefined
 endif
 
-ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS) -lm
+ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS)
 ALLFLAGS := $(strip $(ALLFLAGS))
 
 LADSPAFLAGS = -shared -fPIC $(LADSPADEFS) $(ALLFLAGS) -fno-sanitize=all
