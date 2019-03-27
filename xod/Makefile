@@ -17,10 +17,12 @@
 
 #### OPTIONS ####
 ## Project
+SOCKPATH ?= /usr/local/share/xo/xod.sock
+READLINE ?= 1
 FP ?= 64
-LADSPA_UID ?= 9000
-LADSPA_LABEL ?= xo
-LADSPA_NAME ?= "XO (FP-$(FP))"
+LADSPA_UID ?= 9001
+LADSPA_LABEL ?= xo-xod
+LADSPA_NAME ?= "XO +xod (FP-$(FP))"
 LIMITER ?= 1
 
 ## Generic
@@ -29,7 +31,7 @@ NSANITIZE ?= $(NDEBUG)
 #################
 
 #### Flags ####
-ALLDEFS = -DFP=$(FP) -DLIMITER=$(LIMITER)
+ALLDEFS = -DFP=$(FP) -DLIMITER=$(LIMITER) -DDEFAULT_SOCKPATH='"$(SOCKPATH)"'
 LADSPADEFS = -DNAME='$(LADSPA_NAME)'
 LADSPADEFS += -DUNIQUE_ID="$(LADSPA_UID)"
 LADSPADEFS += -DLABEL='"$(LADSPA_LABEL)"'
@@ -50,6 +52,12 @@ endif
 
 ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS) -lm
 ALLFLAGS := $(strip $(ALLFLAGS))
+
+ifneq ($(READLINE),0)
+    RLFLAGS = -DREADLINE=$(READLINE) -lreadline
+else
+    RLFLAGS = -DREADLINE=0
+endif
 
 LADSPAFLAGS = -shared -fPIC $(LADSPADEFS) $(ALLFLAGS)
 ###############
@@ -74,24 +82,27 @@ JACKC = $(BACKENDC) jack_frontend.c
 GPERF ?= gperf
 
 .PHONY: default
-default: xod xod-cli
+default: xo-dummy xod-cli
 
 .PHONY: all
-all: xod xod-cli
+all: xo-dummy xod-cli
 
 xod.gen.h: xod.y
 	bison -Wall --defines=xod.gen.h -o xod.gen.c xod.y
 
 keywords.gen.h: keywords.gperf xod.gen.h
-	$(GPERF) keywords.gperf > keywords.gen.h
+	$(GPERF) keywords.gperf > $@
 
-xod: keywords.gen.h lex.c lex.h main.c
-	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c main.c ../xo.c ../xo_describe.c ../config_reader.c
+xo-dummy: keywords.gen.h lex.c lex.h dummy.c
+	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
+
+xo-xod.so: keywords.gen.h lex.c lex.h dummy.c
+	$(CC) -o $@ $(LADSPAFLAGS) -I.. ladspa.c xod.gen.c lex.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
 
 xod-cli: cli.c
-	$(CC) -o $@ $(ALLFLAGS) cli.c
+	$(CC) -o $@ $(RLFLAGS) $(ALLFLAGS) cli.c
 
 .PHONY: clean
 clean:
-	rm -fv xod cli *.gen.*
+	rm -fv xo-dummy xod-cli *.gen.*
 
