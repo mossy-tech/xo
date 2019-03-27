@@ -50,7 +50,7 @@ else
 	SANITIZE := -fsanitize=address,undefined
 endif
 
-ALLFLAGS += $(SANITIZE) $(CFLAGS) -lm $(LDFLAGS)
+ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS)
 ALLFLAGS := $(strip $(ALLFLAGS))
 
 ifneq ($(READLINE),0)
@@ -94,7 +94,7 @@ keywords.gen.h: keywords.gperf xod.gen.h
 	$(GPERF) keywords.gperf > $@
 
 xo-dummy: keywords.gen.h lex.c lex.h dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
-	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
+	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c -lm
 
 xo-xod.so: keywords.gen.h lex.c lex.h ladspa.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
 	$(CC) -o $@ $(LADSPAFLAGS) -I.. ladspa.c xod.gen.c lex.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
