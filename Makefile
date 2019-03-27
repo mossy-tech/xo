@@ -103,6 +103,6 @@ install: xo.so
 
 .PHONY: clean
 clean:
-	$(MAKE) -C cmd clean
+	$(MAKE) -C xod clean
 	rm -fv xo.so xo-info xo-baker xo-jack
 
