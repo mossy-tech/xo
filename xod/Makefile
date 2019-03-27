@@ -82,10 +82,10 @@ JACKC = $(BACKENDC) jack_frontend.c
 GPERF ?= gperf
 
 .PHONY: default
-default: xo-dummy xod-cli
+default: xo-xod.so xod-cli
 
 .PHONY: all
-all: xo-dummy xod-cli
+all: default xo-dummy
 
 xod.gen.h: xod.y
 	bison -Wall --defines=xod.gen.h -o xod.gen.c xod.y
@@ -93,10 +93,10 @@ xod.gen.h: xod.y
 keywords.gen.h: keywords.gperf xod.gen.h
 	$(GPERF) keywords.gperf > $@
 
-xo-dummy: keywords.gen.h lex.c lex.h dummy.c
+xo-dummy: keywords.gen.h lex.c lex.h dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
 	$(CC) -o $@ $(ALLFLAGS) xod.gen.c lex.c dummy.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
 
-xo-xod.so: keywords.gen.h lex.c lex.h dummy.c
+xo-xod.so: keywords.gen.h lex.c lex.h ladspa.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
 	$(CC) -o $@ $(LADSPAFLAGS) -I.. ladspa.c xod.gen.c lex.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
 
 xod-cli: cli.c
@@ -104,5 +104,5 @@ xod-cli: cli.c
 
 .PHONY: clean
 clean:
-	rm -fv xo-dummy xod-cli *.gen.*
+	rm -fv xo-dummy xo-xod.so xod-cli *.gen.*
 

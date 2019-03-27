@@ -72,7 +72,7 @@ JACKC = $(BACKENDC) jack_frontend.c
 #################
 
 .PHONY: default
-default: xo.so xo-jack
+default: xo.so xo-jack xod
 
 .PHONY: all
 all: xo.so xo-info xo-baker xo-jack xod-all
@@ -96,10 +96,17 @@ xod-all:
 	$(MAKE) -C xod all
 
 .PHONY: install
-install: xo.so
-	#install -g audio -m775 -d /usr/local/share/xo
+install: all
+	install -g audio -m775 -d /usr/local/share/xo
 	install -d -m755 /usr/local/lib/ladspa
+	install -d -m755 /usr/local/lib/xo/bin
 	install -m755 xo.so /usr/local/lib/ladspa/
+	install -m755 xod/xo-xod.so /usr/local/lib/ladspa/
+	install -m755 xod/xod-cli /usr/local/bin/xod
+	install -m755 xo-jack /usr/local/bin/
+	install -m755 xod/xo-dummy /usr/local/lib/xo/bin/
+	install -m755 xo-info /usr/local/lib/xo/bin/
+	install -m755 xo-baker /usr/local/lib/xo/bin/
 
 .PHONY: clean
 clean:
