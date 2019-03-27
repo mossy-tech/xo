@@ -100,10 +100,11 @@ xod-all:
 install: all
 	install -d -m775 $(DESTDIR)$(PREFIX)/share/xo
 	install -d -m755 $(DESTDIR)$(PREFIX)/lib/ladspa
+	install -d -m755 $(DESTDIR)$(PREFIX)/bin
 	install -d -m755 $(DESTDIR)$(PREFIX)/lib/xo/bin
 	install -m755 xo.so $(DESTDIR)$(PREFIX)/lib/ladspa/
 	install -m755 xod/xo-xod.so $(DESTDIR)$(PREFIX)/lib/ladspa/
-	install -m755 -T xod/xod-cli $(DESTDIR)$(PREFIX)/bin/xod
+	install -m755 xod/xod-cli $(DESTDIR)$(PREFIX)/bin/xod
 	install -m755 xo-jack $(DESTDIR)$(PREFIX)/bin/
 	install -m755 xod/xo-dummy $(DESTDIR)$(PREFIX)/lib/xo/bin/
 	install -m755 xo-info $(DESTDIR)$(PREFIX)/lib/xo/bin/
