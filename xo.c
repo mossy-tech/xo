@@ -193,7 +193,7 @@ void xo_process_chain(struct xo * xo,
 	float_type din[3] = {
 	    din_0[n],
 	    din_1[n],
-	    din_0[n] + din_1[n]
+	    (din_0[n] + din_1[n]) / 2.
 	};
 
 	for (size_t cn = 0; cn < xo->n_chains; cn++) {
