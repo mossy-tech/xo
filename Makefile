@@ -98,7 +98,7 @@ xod-all:
 
 .PHONY: install
 install: all
-	install -d -m775 $(DESTDIR)$(PREFIX)/share/xo
+	install -d -m755 $(DESTDIR)$(PREFIX)/share/xo
 	install -d -m755 $(DESTDIR)$(PREFIX)/lib/ladspa
 	install -d -m755 $(DESTDIR)$(PREFIX)/bin
 	install -d -m755 $(DESTDIR)$(PREFIX)/lib/xo/bin
