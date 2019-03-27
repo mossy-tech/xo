@@ -50,7 +50,7 @@ else
 	SANITIZE := -fsanitize=address,undefined
 endif
 
-ALLFLAGS += $(SANITIZE) $(CFLAGS) $(LDFLAGS) -lm
+ALLFLAGS += $(SANITIZE) $(CFLAGS) -lm $(LDFLAGS)
 ALLFLAGS := $(strip $(ALLFLAGS))
 
 ifneq ($(READLINE),0)

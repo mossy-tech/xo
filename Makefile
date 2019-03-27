@@ -26,6 +26,7 @@ LIMITER ?= 1
 ## Generic
 NDEBUG ?= 0
 NSANITIZE ?= $(NDEBUG)
+PREFIX=/usr/local
 #################
 
 #### Flags ####
@@ -97,16 +98,16 @@ xod-all:
 
 .PHONY: install
 install: all
-	install -g audio -m775 -d $(DESTDIR)/usr/local/share/xo
-	install -d -m755 $(DESTDIR)/usr/local/lib/ladspa
-	install -d -m755 $(DESTDIR)/usr/local/lib/xo/bin
-	install -m755 xo.so $(DESTDIR)/usr/local/lib/ladspa/
-	install -m755 xod/xo-xod.so $(DESTDIR)/usr/local/lib/ladspa/
-	install -m755 xod/xod-cli $(DESTDIR)/usr/local/bin/xod
-	install -m755 xo-jack $(DESTDIR)/usr/local/bin/
-	install -m755 xod/xo-dummy $(DESTDIR)/usr/local/lib/xo/bin/
-	install -m755 xo-info $(DESTDIR)/usr/local/lib/xo/bin/
-	install -m755 xo-baker $(DESTDIR)/usr/local/lib/xo/bin/
+	install -d -m775 $(DESTDIR)$(PREFIX)/share/xo
+	install -d -m755 $(DESTDIR)$(PREFIX)/lib/ladspa
+	install -d -m755 $(DESTDIR)$(PREFIX)/lib/xo/bin
+	install -m755 xo.so $(DESTDIR)$(PREFIX)/lib/ladspa/
+	install -m755 xod/xo-xod.so $(DESTDIR)$(PREFIX)/lib/ladspa/
+	install -m755 -T xod/xod-cli $(DESTDIR)$(PREFIX)/bin/xod
+	install -m755 xo-jack $(DESTDIR)$(PREFIX)/bin/
+	install -m755 xod/xo-dummy $(DESTDIR)$(PREFIX)/lib/xo/bin/
+	install -m755 xo-info $(DESTDIR)$(PREFIX)/lib/xo/bin/
+	install -m755 xo-baker $(DESTDIR)$(PREFIX)/lib/xo/bin/
 
 .PHONY: clean
 clean:
