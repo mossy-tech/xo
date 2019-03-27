@@ -22,8 +22,13 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#ifndef DEFAULT_SOCKPATH
+#error "must #define DEFAULT_SOCKPATH"
+#endif
+
 #include "../xo.h"
 #include "lex.h"
+#include "impl.h"
 
 static int sock = 0;
 
@@ -36,10 +41,11 @@ static FILE * commit_target;
 
 void commit(struct xo * xo)
 {
+    xo_correct(xo, 48000.);
     xo_config_write_file(xo, commit_target);
 }
 
-static const char * sockpath = "/usr/local/share/xo/sock";
+static const char * sockpath = DEFAULT_SOCKPATH;
 
 int connect_client()
 {
@@ -100,6 +106,7 @@ int main(int argc, char ** argv)
             exit(1);
         } else if (n == 0) {
             printf("bye.\n");
+            xo_correct(xo, 48000.);
             exit(0);
         }
         buf[n] = 0;
@@ -109,6 +116,7 @@ int main(int argc, char ** argv)
 
         if (!s) {
             fprintf(stderr, "disconnecting.\n");
+            xo_correct(xo, 48000.);
             close(sock);
             exit(0);
         }
