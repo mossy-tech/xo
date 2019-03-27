@@ -234,14 +234,8 @@ void xo_process_chain(struct xo * xo,
 
 void xo_filter_unity(struct filter * f){
     *f = (struct filter) {
-        .a0 = 1.,
-        .a1 = 0.,
-        .a2 = 0.,
-        .b1 = 0.,
-        .b2 = 0.,
-        .z0 = 0.,
-        .z1 = 0.,
-        .type = XO_FILTER_BQ
+        .order = 0,
+        .type = XO_FILTER_SV_LP
     };
 }
 
