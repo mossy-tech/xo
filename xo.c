@@ -63,8 +63,8 @@ struct xo * xo_from(struct xo * from)
 
 	for (size_t j = 0; j < from->chains[i].n_filters; j++) {
 	    to->chains[i].filters[j] = from->chains[i].filters[j];
-	    to->chains[i].filters[j].z0 = 0.;
-	    to->chains[i].filters[j].z1 = 0.;
+	    to->chains[i].filters[j].z0 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
+	    to->chains[i].filters[j].z1 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
 	}
     }
     return to;
@@ -105,6 +105,8 @@ struct filter * xo_add_filter_to_chain(struct xo * xo)
 void xo_filter_set(struct filter * f,
         float_type a0, float_type a1, float_type a2,
         float_type b1, float_type b2,
+        size_t order,
+        size_t over,
         enum filter_type type)
 {
     *f = (struct filter) {
@@ -113,8 +115,10 @@ void xo_filter_set(struct filter * f,
         .a2 = a2,
         .b1 = b1,
         .b2 = b2,
-        .z0 = 0.,
-        .z1 = 0.,
+        .z0 = malloc(sizeof(float_type) * order),
+        .z1 = malloc(sizeof(float_type) * order),
+        .order = order,
+        .over = over,
         .type = type
     };
 }
@@ -125,8 +129,10 @@ void xo_reset(struct xo * xo)
 	struct chain * chain = &xo->chains[i];
 	for (size_t j = 0; j < chain->n_filters; j++) {
 	    struct filter * filter = &chain->filters[j];
-	    filter->z0 = 0.;
-	    filter->z1 = 0.;
+            for (size_t i = 0; i < filter->order; i++) {
+                filter->z0[i] = 0.;
+                filter->z1[i] = 0.;
+            }
 	}
     }
 }
@@ -134,34 +140,47 @@ void xo_reset(struct xo * xo)
 static float_type step_biquad(struct filter * f, float_type d)
 {
     float_type y;
-    y = f->z0 + d * f->a0;
-    f->z0 = f->z1 + d * f->a1 - y * f->b1;
-    f->z1 = d * f->a2 - y * f->b2;
+    y = f->z0[0] + d * f->a0;
+    f->z0[0] = f->z1[0] + d * f->a1 - y * f->b1;
+    f->z1[0] = d * f->a2 - y * f->b2;
     return y;
 }
 
 static float_type step_sv_lp(struct filter * f, float_type d)
 {
-    float_type v3 = d - f->z1;
-    float_type v1 = f->a0 * f->z0 + f->a1 * v3;
-    float_type v2 = f->z1 + f->a1 * f->z0 + f->a2 * v3;
-
-    f->z0 = 2. * v1 - f->z0;
-    f->z1 = 2. * v2 - f->z1;
-
-    return v2;
+    /* lp = z0 * f + z1
+     * hp = d - lp - z0 * q
+     * z0 = hp * f + z0
+     * z1 = lp
+     */
+    for (size_t i = 0; i < f->order; i++) {
+        for (size_t j = 0; j < f->over; j++) {
+            f->z1[i] += f->z0[i] * f->a0;
+            float_type hp = d - f->z1[i] - f->a1 * f->z0[i];
+            f->z0[i] += f->a0 * hp;
+        }
+        d = f->z1[i];
+    }
+    return d;
 }
 
 static float_type step_sv_hp(struct filter * f, float_type d)
 {
-    float_type v3 = d - f->z1;
-    float_type v1 = f->a0 * f->z0 + f->a1 * v3;
-    float_type v2 = f->z1 + f->a1 * f->z0 + f->a2 * v3;
-
-    f->z0 = 2. * v1 - f->z0;
-    f->z1 = 2. * v2 - f->z1;
-
-    return d - f->b2 * v1 - v2;
+    /* lp = z0 * f + z1
+     * hp = d - lp - z0 * q
+     * z0 = hp * f + z0
+     * z1 = lp
+     */
+    for (size_t i = 0; i < f->order; i++) {
+        float_type hp;
+        for (size_t j = 0; j < f->over; j++) {
+            f->z1[i] += f->z0[i] * f->a0;
+            hp = d - f->z1[i] - f->a1 * f->z0[i];
+            f->z0[i] += f->a0 * hp;
+        }
+        d = hp;
+    }
+    return d;
 }
 
 void xo_process_chain(struct xo * xo,

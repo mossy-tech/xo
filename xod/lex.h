@@ -25,6 +25,8 @@ struct token {
     size_t length;
 };
 
-#include "cmd.gen.h"
+extern size_t lineno;
+
+#include "xod.gen.h"
 
 #endif /* LEX_H */

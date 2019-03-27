@@ -58,12 +58,13 @@ typedef CAT(_Float, FP) float_type;
 
 struct filter {
     float_type a0, a1, a2, b1, b2;
-    float_type z0, z1;
+    float_type * z0, * z1;
     enum filter_type {
         XO_FILTER_BQ,
         XO_FILTER_SV_LP,
         XO_FILTER_SV_HP
     } type;
+    size_t over, order;
 };
 
 struct chain {
@@ -99,6 +100,8 @@ void xo_process_chain(struct xo * xo,
 void xo_filter_set(struct filter * f,
         float_type a0, float_type a1, float_type a2,
         float_type b1, float_type b2,
+        size_t over,
+        size_t order,
         enum filter_type type);
 
 void xo_filter_unity(struct filter * f);
@@ -109,6 +112,8 @@ void xo_filter_calculate_sv(struct filter * f,
         float_type q,
         float_type sample_rate,
         enum filter_type type);
+
+void xo_correct(struct xo * xo, float_type sample_rate);
 
 /* config_reader.c */
 FILE * xo_config_find(const char * const * where);

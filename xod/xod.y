@@ -6,13 +6,12 @@
 %{
 #include "../xo_describe.h"
 #include "lex.h"
+#include "impl.h"
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
-void respond(int response);
-void commit(struct xo * xo);
 %}
 
 %code requires {
@@ -26,7 +25,7 @@ struct source {
 
 %union {
     struct token str;
-    double flt;
+    float_type flt;
     long num;
 
     int d;
@@ -54,14 +53,17 @@ void yyerror(struct xo ** xop, const char ** _, const char * s);
 %token KWD_NEW KWD_CHAIN KWD_FILTER KWD_REPLACE
 %token KWD_FP KWD_IN KWD_OUT KWD_LIMITER
 %token KWD_LEFT KWD_RIGHT KWD_MONO
-%token KWD_SV KWD_LP KWD_HP KWD_BQ KWD_A KWD_B
+%token KWD_BQ KWD_A KWD_B
+%token KWD_SV KWD_LP KWD_HP KWD_OVER KWD_ORDER KWD_F KWD_Q
+%token KWD_SQRT1_2
 
 %token <str> LIT_STRING
 %token <flt> LIT_FLOAT
 %token <num> LIT_NUMERIC
 
-%type <num> source
+%type <num> source over order
 %type <d> get_thing
+%type <flt> qval
 
 /*
 %type <source_list> source_list
@@ -135,25 +137,48 @@ bq_filter: KWD_BQ
             { $$ = (struct filter) { .type = XO_FILTER_BQ };    }
          | KWD_BQ
            KWD_A LIT_FLOAT LIT_FLOAT LIT_FLOAT
-           KWD_B LIT_FLOAT LIT_FLOAT LIT_FLOAT
+           KWD_B LIT_FLOAT LIT_FLOAT
             { $$ = (struct filter) { .type = XO_FILTER_BQ,    //}
                     .a0 = $3, .a1 = $4, .a2 = $5,             //}
                     .b1 = $7, .b2 = $8 };                       }
          ;
 
-sv_filter: KWD_SV sv_subtype 
+sv_filter: KWD_SV sv_subtype
             { $$ = (struct filter) { .type = $2 };              }
-         | KWD_SV sv_subtype
-           KWD_A LIT_FLOAT LIT_FLOAT LIT_FLOAT
+         | KWD_SV sv_subtype order over
+           KWD_F LIT_FLOAT KWD_Q qval
             { $$ = (struct filter) { .type = $2,              //}
-                    .a0 = $4, .a1 = $5, .a2 = $6 };             }
+                    .a0 = $6, .a1 = $8, .order = $3,          //}
+                    .over = $4, }; fprintf(stderr, "%A %A\n", (double)$6, (double)$8);                              }
          ;
 
 sv_subtype: KWD_LP { $$ = XO_FILTER_SV_LP; }
           | KWD_HP { $$ = XO_FILTER_SV_HP; }
           ;
 
+order: %empty
+        { $$ = 1;                                               }
+     | KWD_ORDER LIT_NUMERIC
+        { if ($2 < 2 || ($2 % 2) == 1) {                      //}
+              yyerror(NULL, NULL,                             //}
+                  "order must be positive, non-zero, even");  //}
+              YYERROR; }                                      //}
+          else { $$ = $2 / 2; }                                 }
+     ;
 
+over: %empty
+        { $$ = 1;                                       }
+    | KWD_OVER LIT_NUMERIC
+        { if ($2 < 1) {                               //}
+              yyerror(NULL, NULL,                     //}
+                  "over must be positive, non-zero"); //}
+              YYERROR; }                              //}
+          else { $$ = $2; }                             }
+    ;
+
+qval: LIT_FLOAT   { $$ = $1;                    }
+    | KWD_SQRT1_2 { $$ = CAT(M_SQRT1_2f, FP);   }
+    ;
 
 %%
 
@@ -161,7 +186,7 @@ sv_subtype: KWD_LP { $$ = XO_FILTER_SV_LP; }
 void yyerror(struct xo ** xop, const char ** _, const char * s)
 {
     (void)xop;
-    fprintf(stderr, "%s\n", s);
+    fprintf(stderr, "%zu: %s\n", lineno, s);
 }
 
 

@@ -15,11 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with xo.  If not, see <https://www.gnu.org/licenses/>.
  */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <float.h>
 
 #include "lex.h"
 #include "keywords.gen.h"
@@ -28,6 +30,8 @@
 
 #define ISWHITE(c) (c == ' ')
 #define ISBREAK(c) (c == ';' || c == '\n')
+
+size_t lineno = 1;
 
 static struct token tokenize(const char ** sptr)
 {
@@ -76,10 +80,10 @@ static bool token_get_integer(struct token token, long * result)
     return false;
 }
 
-static bool token_get_float_type(struct token token, double * result)
+static bool token_get_float_type(struct token token, float_type * result)
 {
     char * endptr;
-    double n = strtod(token.start, &endptr);
+    double n = CAT(strtof, FP)(token.start, &endptr);
     size_t l = endptr - token.start;
     if (l == token.length) {
         *result = n;
@@ -92,6 +96,7 @@ enum yytokentype yylex(YYSTYPE *lvalp, const char ** sptr)
 {
     struct token token = tokenize(sptr);
     if (!token.start) {
+        lineno++;
         return 0;
     }
 

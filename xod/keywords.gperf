@@ -6,7 +6,7 @@
 
 %{
 #include <stddef.h>
-#include "cmd.gen.h"
+#include "xod.gen.h"
 %}
 
 struct keyword {
@@ -32,9 +32,14 @@ HP, KWD_HP
 BQ, KWD_BQ
 A, KWD_A
 B, KWD_B
+F, KWD_F
+Q, KWD_Q
+ORDER, KWD_ORDER
+OVER, KWD_OVER
 LEFT, KWD_LEFT
 RIGHT, KWD_RIGHT
 MONO, KWD_MONO
 REPLACE, KWD_REPLACE
+SQRT1/2, KWD_SQRT1_2
 %%
 
