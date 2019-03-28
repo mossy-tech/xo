@@ -28,7 +28,9 @@ Additionally, *xo* has the option of listening for configuration
 instructions via a built-in server. This server could then be controlled
 by a seperate program to reconfigure the plugin at runtime.
 A project, tentatively *xo-gui* is planned for a graphical client of
-this sort.
+this sort. See Configuration/Daemon below.
+
+
 
 ## Building
 
@@ -77,6 +79,24 @@ A few build options are provided, in addition to respecting standard
    with the value of `NDEBUG`. It may be specified directly for
    debug builds on systems lacking *usan* and *asan* support
    (e.g. Windows) but is redundant if `NDEBUG=1` is also given.
+
+## Configuration
+There are currently two configuration file formats: raw .xo files
+and xod session files. The first format is the older, historical
+form and is used with the plugin frontends that have no daemon support:
+
+ - *xo.so* searches for a *.xo* file in a predetermined list of directories
+   (see `config_reader.c`.) The full name is determined by `LADSPA_LABEL`,
+   e.g. *xo.xo* by default.
+ - *xo-jack* reads one or more configuration files passed as command line
+   arguments. *xo-baker* and *xo-info* follow this form as well.
+
+The syntax for the file will be detailed in `doc/RAW.md` in the future.
+For now, consult `config_reader.c`; it is a very simple, rigid format.
+
+### Daemon
+The second configuration type is used by plugin clients supporting
+the *xod* setup. TODO: document. (See subdirectory for now.)
 
 ---
     Copyright (C) 2019 Noah Santer <personal@mail.mossy-tech.com>
