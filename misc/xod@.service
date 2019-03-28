@@ -1,0 +1,9 @@
+[Unit]
+Description=xod
+WantedBy = multi-user.target
+
+[Service]
+Type=simple
+ExecStart=xod -f /etc/xod/%i -l
+KillSignal=SIGINT
+Group=audio
