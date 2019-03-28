@@ -68,7 +68,7 @@ void xo_correct(struct xo * xo, float_type sample_rate)
 
             if (filter->type == XO_FILTER_SV_HP ||
                 filter->type == XO_FILTER_SV_LP) {
-                fprintf(stderr, "adjust\n");
+//                fprintf(stderr, "adjust\n");
 
                 if (filter->a0 > CAT(M_PIf, FP)) {
                     filter->a0 = 2 * CAT(sinf, FP)(
@@ -79,6 +79,6 @@ void xo_correct(struct xo * xo, float_type sample_rate)
             }
         }
     }
-    xo_describe(xo, printf, 1, 0);
+//    xo_describe(xo, printf, 1, 0);
 }
 
