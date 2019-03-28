@@ -33,8 +33,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define SOCKMOD 0660
-
 static bool quiet;
 
 bool col_err, col_out;
@@ -244,8 +242,6 @@ int main(int argc, char ** argv)
 
     PRINT(stderr, "%sbound %s%s,\n",
             c_info(), sockpath, c_off());
-
-    chmod(sockpath, SOCKMOD);
 
     if (listen(sock, 1)) {
         PRINT(stderr ,"%serror listening%s!\n",
