@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <getopt.h>
 
+#define SOCKMOD 0660
+
 #include "config.h"
 #include "color.h"
 
@@ -239,6 +241,8 @@ int main(int argc, char ** argv)
         close(sock);
         exit(1);
     }
+
+    chmod(sockpath, SOCKMOD);
 
     PRINT(stderr, "%sbound %s%s,\n",
             c_info(), sockpath, c_off());
