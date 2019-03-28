@@ -20,26 +20,20 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <errno.h>
 #include <getopt.h>
 
+#include "config.h"
 #include "color.h"
 
-#ifndef DEFAULT_SOCKPATH
-#define DEFAULT_SOCKPATH "/usr/local/share/xo/sock"
-#endif
-
-#if READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
-#endif
 
-#ifndef VERSION
-#define VERSION "alpha"
-#endif
+#define SOCKMOD 0660
 
 static bool quiet;
 
@@ -66,13 +60,10 @@ void sig_handler(int signo)
 
 int handle_connection(int peer, FILE * src)
 {
-#if READLINE
     rl_bind_key('\t', rl_insert);
-#endif
     char * line = NULL;
     size_t linen = 0;
     for (;;) {
-#if READLINE
         ssize_t l;
         if (src == stdin) {
             line = readline(">> ");
@@ -81,13 +72,12 @@ int handle_connection(int peer, FILE * src)
         } else {
             l = getline(&line, &linen, src);
         }
-#else
-        PRINT(stdout, ">> ");
-        ssize_t l = getline(&line, &linen, src);
-        if (src != stdin) {
-            PRINT(stdout, "%s", line);
+
+        if (l >= 1024) {
+            PRINT(stderr, "%sline length exceeds maximum (1024)%s\n",
+                    c_err(), c_off());
         }
-#endif
+
         if (should_exit || l == -1) {
             if (!quiet) {
                 PRINT(stderr, "\n%sexiting%s.\n",
@@ -98,6 +88,8 @@ int handle_connection(int peer, FILE * src)
             return HANDLE_EOF;
         }
         ssize_t n = send(peer, line, l, 0);
+        free(line);
+        line = NULL;
         if (n <= 0) {
             close(peer);
             if (got_sigpipe || should_exit || n == 0) {
@@ -105,19 +97,13 @@ int handle_connection(int peer, FILE * src)
                     PRINT(stdout, "%sdisconnected%s.\n",
                             c_info(), c_off());
                 }
-                free(line);
                 return HANDLE_OKAY;
             } else {
                 PRINT(stderr, "%serror sending%s!\n",
                         c_err(), c_off());
-                free(line);
                 return HANDLE_ERROR;
             }
         }
-#if READLINE
-        free(line);
-        line = NULL;
-#endif
 
         int response;
         do {
@@ -172,6 +158,7 @@ int main(int argc, char ** argv)
 
         { "file", required_argument, 0, 'f' },
 
+        { "path", required_argument, 0, 'p' },
 
         { 0, 0, 0, 0 }
     };
@@ -200,6 +187,10 @@ int main(int argc, char ** argv)
                 }
                 src = fopen(optarg, "r");
                 break;
+
+            case 'p':
+                sockpath = optarg;
+                break;
             case '?':
                 exit(1);
             default:
@@ -208,7 +199,7 @@ int main(int argc, char ** argv)
     }
 
     if (show_version) {
-        PRINT(stdout, "%s\n", VERSION);
+        PRINT(stderr, "%s\n", VERSION);
         exit(0);
     }
 
@@ -253,6 +244,8 @@ int main(int argc, char ** argv)
 
     PRINT(stderr, "%sbound %s%s,\n",
             c_info(), sockpath, c_off());
+
+    chmod(sockpath, SOCKMOD);
 
     if (listen(sock, 1)) {
         PRINT(stderr ,"%serror listening%s!\n",

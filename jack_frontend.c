@@ -42,16 +42,14 @@ void on_jack_shutdown(void * arg) {
 int main(int argc, char ** argv) {
 
     if (argc < 2) {
-        fprintf(stderr, "Syntax: %s CONFIG [...]\n", argv[0]);
+        fprintf(stderr, "Syntax: %s [-V] CONFIG [...]\n", argv[0]);
         return 1;
     }
 
-    /*
-    if (strcmp(argv[1], "-v") == 0) {
-        fprintf(stderr, "FP%u\n", FP);
-        return 1;
+    if (!strcmp(argv[1], "-V")) {
+        fprintf(stderr, "%s\n", VERSION);
+        exit(0);
     }
-    */
 
     struct xo * xo = NULL;
 

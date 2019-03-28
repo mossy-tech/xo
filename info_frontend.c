@@ -23,8 +23,13 @@
 int main(int argc, char ** argv) {
     
     if (argc < 2) {
-        fprintf(stderr, "Syntax: %s CONFIG [...]\n", argv[0]);
+        fprintf(stderr, "Syntax: %s [-V] CONFIG [...]\n", argv[0]);
         return 1;
+    }
+
+    if (!strcmp(argv[1], "-V")) {
+        fprintf(stderr, VERSION "\n");
+        return 0;
     }
 
     struct xo * xo = NULL;

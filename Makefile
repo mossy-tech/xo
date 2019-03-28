@@ -17,6 +17,7 @@
 
 #### OPTIONS ####
 ## Project
+PREFIX ?= /usr/local
 FP ?= 64
 LADSPA_UID ?= 9000
 LADSPA_LABEL ?= xo
@@ -26,11 +27,11 @@ LIMITER ?= 1
 ## Generic
 NDEBUG ?= 0
 NSANITIZE ?= $(NDEBUG)
-PREFIX=/usr/local
+VERSION ?= "$(shell git describe)$(shell git diff --quiet || echo -n '-alpha')"
 #################
 
 #### Flags ####
-ALLDEFS = -DFP=$(FP) -DLIMITER=$(LIMITER)
+ALLDEFS = -DFP=$(FP) -DLIMITER=$(LIMITER) -DVERSION='$(VERSION)'
 LADSPADEFS = -DNAME='$(LADSPA_NAME)'
 LADSPADEFS += -DUNIQUE_ID="$(LADSPA_UID)"
 LADSPADEFS += -DLABEL='"$(LADSPA_LABEL)"'
@@ -73,6 +74,7 @@ JACKC = $(BACKENDC) jack_frontend.c
 #################
 
 .PHONY: default
+.SILENT: default
 default: xo.so xo-jack xod
 
 .PHONY: all

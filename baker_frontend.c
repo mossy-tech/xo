@@ -36,10 +36,15 @@ static const char * coefstr(char s[], float_type coef) {
 int main(int argc, char ** argv) {
     
     if (argc < 2) {
-        fprintf(stderr, "Syntax: %s CONFIG [...]\n", argv[0]);
+        fprintf(stderr, "Syntax: [-V] %s CONFIG [...]\n", argv[0]);
         return 1;
     }
-    
+
+    if (strcmp(argv[1], "-V") == 0) {
+        fprintf(stderr, VERSION "\n");
+        exit(0);
+    }
+ 
     struct xo * xo = NULL;
     
     FILE * out = stdout;

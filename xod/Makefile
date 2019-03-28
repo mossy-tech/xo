@@ -17,7 +17,9 @@
 
 #### OPTIONS ####
 ## Project
-SOCKPATH ?= /usr/local/share/xo/xod.sock
+PREFIX ?= /usr/local
+SOCKPATH ?= $(PREFIX)/share/xo/xod.sock
+#SOCKPATH ?= /tmp/xod.sock
 READLINE ?= 1
 FP ?= 64
 LADSPA_UID ?= 9001
@@ -28,11 +30,15 @@ LIMITER ?= 1
 ## Generic
 NDEBUG ?= 0
 NSANITIZE ?= $(NDEBUG)
+VERSION ?= "$(shell git describe)$(shell git diff --quiet || echo -n '-alpha')"
 #################
 
 #### Flags ####
-ALLDEFS = -DFP=$(FP) -DLIMITER=$(LIMITER) -DDEFAULT_SOCKPATH='"$(SOCKPATH)"'
-LADSPADEFS = -DNAME='$(LADSPA_NAME)'
+ALLDEFS  = -DFP=$(FP) 
+ALLDEFS += -DLIMITER=$(LIMITER)
+ALLDEFS += -DDEFAULT_SOCKPATH='"$(SOCKPATH)"'
+ALLDEFS += -DVERSION='$(VERSION)'
+LADSPADEFS  = -DNAME='$(LADSPA_NAME)'
 LADSPADEFS += -DUNIQUE_ID="$(LADSPA_UID)"
 LADSPADEFS += -DLABEL='"$(LADSPA_LABEL)"'
 
