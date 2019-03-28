@@ -54,7 +54,7 @@ void yyerror(struct xo ** xop, const char ** _, const char * s);
 %token KWD_FP KWD_IN KWD_OUT KWD_LIMITER
 %token KWD_LEFT KWD_RIGHT KWD_MONO
 %token KWD_BQ KWD_A KWD_B
-%token KWD_SV KWD_LP KWD_HP KWD_OVER KWD_ORDER KWD_F KWD_Q
+%token KWD_SV KWD_LP KWD_HP KWD_OVER KWD_ORDER KWD_F KWD_Q KWD_UNITY
 %token KWD_SQRT1_2
 
 %token <str> LIT_STRING
@@ -143,8 +143,8 @@ bq_filter: KWD_BQ
                     .b1 = $7, .b2 = $8 };                       }
          ;
 
-sv_filter: KWD_SV sv_subtype
-            { $$ = (struct filter) { .type = $2 };              }
+sv_filter: KWD_SV KWD_UNITY
+            { $$ = (struct filter) { .type = XO_FILTER_SV_LP }; }
          | KWD_SV sv_subtype order over
            KWD_F LIT_FLOAT KWD_Q qval
             { $$ = (struct filter) { .type = $2,              //}
