@@ -269,8 +269,8 @@ extern const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
         .Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE,
 
         .Name = strdup(NAME),
-        .Maker = strdup("Noah Santer"),
-        .Copyright = strdup("All Rights Reserved"),
+        .Maker = strdup("mossy-tech <admin@mail.mossy-tech.com>"),
+        .Copyright = strdup("GPL-3.0"),
 
         .PortCount = OFFSET + MAX_OUTPUTS,
         .PortDescriptors = NULL,
