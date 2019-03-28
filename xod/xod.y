@@ -149,7 +149,7 @@ sv_filter: KWD_SV sv_subtype
            KWD_F LIT_FLOAT KWD_Q qval
             { $$ = (struct filter) { .type = $2,              //}
                     .a0 = $6, .a1 = $8, .order = $3,          //}
-                    .over = $4, }; fprintf(stderr, "%A %A\n", (double)$6, (double)$8);                              }
+                    .over = $4, };                              }
          ;
 
 sv_subtype: KWD_LP { $$ = XO_FILTER_SV_LP; }
