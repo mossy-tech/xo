@@ -30,6 +30,8 @@ struct source {
 
     int d;
 
+    bool b;
+
 /*
     struct {
         struct source * sources;
@@ -56,6 +58,7 @@ void yyerror(struct xo ** xop, const char ** _, const char * s);
 %token KWD_BQ KWD_A KWD_B
 %token KWD_SV KWD_LP KWD_HP KWD_OVER KWD_ORDER KWD_F KWD_Q KWD_UNITY
 %token KWD_SQRT1_2
+%token KWD_IF KWD_NOT KWD_EQ KWD_LT KWD_GT
 
 %token <str> LIT_STRING
 %token <flt> LIT_FLOAT
@@ -64,6 +67,7 @@ void yyerror(struct xo ** xop, const char ** _, const char * s);
 %type <num> source over order
 %type <d> get_thing
 %type <flt> qval
+%type <b> not get_thing_test
 
 /*
 %type <source_list> source_list
@@ -84,25 +88,28 @@ commands: %empty
         ;
 
 command: KWD_BYE
-            { *sptr = NULL; YYACCEPT;                                       }
+            { *sptr = NULL; YYACCEPT;                                   }
        | KWD_DESCRIBE
-            { xo_describe(*xop, printf, 1, 0);                              }
+            { xo_describe(*xop, printf, 1, 0);                          }
        | KWD_COMMIT
-            { commit(*xop);                                                 }
+            { commit(*xop);                                             }
        | KWD_GET get_thing
-            { respond(-$2 - 1);                                             }
+            { respond(-$2 - 1);                                         }
+       | KWD_IF get_thing_test
+            { respond(-$2 - 1); if (!$2) YYACCEPT;                      }
        | KWD_NEW
-            { xo_free(*xop); *xop = xo_alloc();                             }
+            { xo_free(*xop); *xop = xo_alloc();                         }
        | KWD_CHAIN source
-            { xo_add_chain(*xop, $2);                                       }
+            { xo_add_chain(*xop, $2);                                   }
        | KWD_FILTER filter
-            { if ((*xop)->n_chains > 0) *xo_add_filter_to_chain(*xop) = $2; }
+            { if ((*xop)->n_chains > 0)
+                { *xo_add_filter_to_chain(*xop) = $2; }                 }
        | KWD_REPLACE LIT_NUMERIC LIT_NUMERIC KWD_FILTER filter
-            { if ((*xop)->n_chains >= $2 &&                             //  }
-                  ((*xop)->chains[$2].n_filters > $3))                  //  }
-                { (*xop)->chains[$2].filters[$3] = $5; }                //  }
-              else                                                      //  }
-                { yyerror(NULL, NULL, "index out of range"); YYABORT; }     }
+            { if ((*xop)->n_chains >= $2 &&                         //  }
+                  ((*xop)->chains[$2].n_filters > $3))              //  }
+                { (*xop)->chains[$2].filters[$3] = $5; }            //  }
+              else                                                  //  }
+                { yyerror(NULL, NULL, "index out of range"); YYABORT; } }
        ;
 
 get_thing: KWD_FP
@@ -114,8 +121,20 @@ get_thing: KWD_FP
          | KWD_LIMITER
             { $$ = LIMITER;                                             }
          | source
-            { $$ = $1;                                                  }
+            { $$ = ($1 <= XO_SOURCE_MAX);                               }
          ;
+
+get_thing_test: get_thing not KWD_EQ LIT_NUMERIC
+                { $$ = ($1 == $4) != $2;    }
+              | get_thing not KWD_LT LIT_NUMERIC
+                { $$ = ($1 < $4) != $2;     }
+              | get_thing not KWD_GT LIT_NUMERIC
+                { $$ = ($1 > $4) != $2;     }
+              ;
+
+not: %empty  { $$ = false; }
+   | KWD_NOT { $$ = true; }
+   ;
 
 source: KWD_LEFT    { $$ = XO_LEFT;     }
       | KWD_RIGHT   { $$ = XO_RIGHT;    }
@@ -179,6 +198,8 @@ over: %empty
 qval: LIT_FLOAT   { $$ = $1;                    }
     | KWD_SQRT1_2 { $$ = CAT(M_SQRT1_2f, FP);   }
     ;
+
+
 
 %%
 
