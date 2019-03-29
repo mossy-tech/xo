@@ -60,7 +60,7 @@ void sig_handler(int signo)
 
 int handle_connection(int peer, FILE * src)
 {
-    rl_bind_key('\t', rl_insert);
+    rl_bind_key_if_unbound('\t', rl_insert);
     char * line = NULL;
     size_t linen = 0;
     for (;;) {
@@ -163,6 +163,7 @@ int main(int argc, char ** argv)
         { 0, 0, 0, 0 }
     };
 
+    const char * srcname;
     FILE * src = NULL;
 
     int option_index = 0;
@@ -182,10 +183,13 @@ int main(int argc, char ** argv)
                 listen_mode = c;
                 break;
             case 'f':
+                /*
                 if (src) {
                     fclose(src);
                 }
-                src = fopen(optarg, "r");
+                */
+                //src = fopen(optarg, "r");
+                srcname = optarg;
                 break;
 
             case 'p':
@@ -211,7 +215,14 @@ int main(int argc, char ** argv)
         }
     }
     
-    if (src == NULL) {
+    if (srcname) {
+        src = fopen(srcname, "r");
+        if (!src) {
+            PRINT(stderr, "%serror opening file %s%s!\n",
+                    c_err(), srcname, c_off());
+            exit(1);
+        }
+    } else {
         src = stdin;
     }
 
@@ -291,8 +302,10 @@ int main(int argc, char ** argv)
                     c_info(), c_off());
         }
        
-        if (src != stdin && listen_mode == 'l') {
-            fseek(src, 0, SEEK_SET);
+        if (srcname && listen_mode == 'l') {
+            //fseek(src, 0, SEEK_SET);
+            fclose(src);
+            fopen(srcname, "r");
         }
         int result = handle_connection(peer, src);
         if (result == HANDLE_EOF) {
