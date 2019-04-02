@@ -6,3 +6,4 @@
 cp -v "$TYPE.ninja" active.gen.ninja
 [ "$FP" ] && sed -i 's/fp = .*/fp = '"$FP"'/' active.gen.ninja
 
+exit 0
