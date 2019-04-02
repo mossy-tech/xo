@@ -1,0 +1,28 @@
+prefix = /usr/local
+
+baseflags = -Wall -flto
+sanflags = -fsanitize=address,undefined
+limiter = 0
+
+include active.gen.ninja
+
+ladspa = -DUNIQUE_ID=9000 -DLABEL='"xo"' -DNAME='"XO (FP-$fp)"'
+defines = -DFP=$fp -DVERSION="\"$$(git describe --dirty)-fp$fp$suffix\"" -DLIMITER=$limiter
+
+rule bin
+  depfile = $out.
+  command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
+
+rule so
+  depfile = $out.d
+  command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
+
+build xo-jack: bin jack_frontend.c xo.c config_reader.c | active.gen.ninja
+  libs = -ljack
+
+build xo.so: so ladspa_frontend.c xo.c config_reader.c | active.gen.ninja
+  cflags = $cflags -fno-sanitize=all
+  defines = $defines $ladspa
+
+default xo-jack xo.so
+

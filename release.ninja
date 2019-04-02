@@ -1,0 +1,3 @@
+suffix =
+cflags = $baseflags -O2 -Werror
+fp = 128

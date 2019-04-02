@@ -1,0 +1,8 @@
+#!/bin/bash
+
+[ $1 ] && TYPE="$1" || TYPE="release"
+
+[ ! -f "$TYPE.ninja" ] && { echo "No configuration $TYPE" >&2; exit 1 ; }
+cp -v "$TYPE.ninja" active.gen.ninja
+[ "$FP" ] && sed -i 's/fp = .*/fp = '"$FP"'/' active.gen.ninja
+

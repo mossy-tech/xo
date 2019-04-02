@@ -1,0 +1,3 @@
+suffix = -debug
+cflags = $baseflags -g -Og $sanflags
+fp = 128
