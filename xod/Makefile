@@ -105,6 +105,10 @@ xo-dummy: keywords.gen.h lex.c lex.h dummy.c ../xo.c ../xo_describe.c ../config_
 xo-xod.so: keywords.gen.h lex.c lex.h ladspa.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
 	$(CC) -o $@ $(LADSPAFLAGS) -I.. ladspa.c xod.gen.c lex.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c
 
+xo-jack: keywords.gen.h lex.c lex.h jack.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c ../xo.h ../xo_describe.h impl.h
+	$(CC) -o $@ $(ALLFLAGS) -I.. jack.c xod.gen.c lex.c ../xo.c ../xo_describe.c ../config_reader.c ../sv.c -ljack -lm
+
+
 xod-cli: cli.c
 	$(CC) -o $@ $(RLFLAGS) $(ALLFLAGS) cli.c
 
