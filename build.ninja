@@ -7,7 +7,7 @@ limiter = 0
 include active.gen.ninja
 
 ladspa = -DUNIQUE_ID=9000 -DLABEL='"xo"' -DNAME='"XO (FP-$fp)"'
-defines = -DFP=$fp -DVERSION="\"$$(git describe --dirty)-fp$fp$suffix\"" -DLIMITER=$limiter
+defines = -DFP=$fp -DVERSION="\"$$(git describe --dirty)+fp$fp$suffix\"" -DLIMITER=$limiter
 
 rule bin
   depfile = $out.
