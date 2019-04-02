@@ -7,3 +7,5 @@ xod-*
 *.ignore
 *.ignore.*
 .ninja*
+*.o
+*.d

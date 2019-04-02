@@ -9,18 +9,26 @@ include active.gen.ninja
 ladspa = -DUNIQUE_ID=9000 -DLABEL='"xo"' -DNAME='"XO (FP-$fp)"'
 defines = -DFP=$fp -DVERSION="\"$$(git describe --dirty)+fp$fp$suffix\"" -DLIMITER=$limiter
 
+rule cc
+  depfile = $out.d
+  command = gcc -MMD -MF $out.d $cflags $defines $in -c -o $out
+
 rule bin
-  depfile = $out.
+  depfile = $out.d
   command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
 
 rule so
   depfile = $out.d
   command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
 
-build xo-jack: bin jack_frontend.c xo.c config_reader.c | active.gen.ninja
+build xo.o: cc xo.c | active.gen.ninja
+build config_reader.o: cc config_reader.c | active.gen.ninja
+build sv.o: cc sv.c | active.gen.ninja
+
+build xo-jack: bin jack_frontend.c xo.o config_reader.o | active.gen.ninja
   libs = -ljack
 
-build xo.so: so ladspa_frontend.c xo.c config_reader.c | active.gen.ninja
+build xo.so: so ladspa_frontend.c xo.o config_reader.o | active.gen.ninja
   cflags = $cflags -fno-sanitize=all
   defines = $defines $ladspa
 
