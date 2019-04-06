@@ -21,4 +21,4 @@
 void respond(int response);
 void commit(struct xo * xo);
 
-#endif /* LEX_H */
+#endif /* IMPL_H */
