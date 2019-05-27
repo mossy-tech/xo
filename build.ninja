@@ -1,49 +1,33 @@
-# Copyright © 2019 Noah Santer <personal@mail.mossy-tech.com>
-#
-# This file is part of xo.
-#
-# xo is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# xo is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
+prefix = /usr/local
 
-builddir = out
-cflags = -Wall -flto -fdiagnostics-color -Iinclude -Iinclude/xod
-ldflags =
+baseflags = -Wall -flto -I.
 sanflags = -fsanitize=address,undefined
+limiter = 0
 
 include active.gen.ninja
 
 ladspa = -DUNIQUE_ID=9000 -DLABEL='"xo"' -DNAME='"XO (FP-$fp)"'
 ladspax = -DUNIQUE_ID=9001 -DLABEL='"xo-xod"' -DNAME='"XO+xod (FP-$fp)"'
-
 defines = $defines -DFP=$fp
 defines = $defines -DVERSION="\"$$(git describe --dirty)+fp$fp$suffix\""
-defines = $defines -DLIMITER=0
+defines = $defines -DLIMITER=$limiter
 defines = $defines -DDEFAULT_SOCKPATH='"$sockpath"'
+
 
 rule cc
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d $defines $cflags $in -c -o $out
+  command = gcc -MMD -MF $out.d $cflags $defines $in -c -o $out
 
 rule bin
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d $defines $cflags $in -o $out $ldflags $libs
+  command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
 
 rule so
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d -fPIC $defines $cflags -shared $in -o $out $ldflags $libs
+  command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
 
 rule bison
   command = bison -Wall --defines=$outh -o $outc $in
@@ -52,65 +36,40 @@ rule gperf
   command = gperf $in --output-file=$out
 
 # ...sources
-build out/xo.o:                     cc src/xo.c
-build out/sv.o:                     cc src/sv.c
-build out/config_reader.o:          cc src/config_reader.c
-build out/xo_describe.o:            cc src/xo_describe.c
+build xo.o: cc xo.c | active.gen.ninja
+build config_reader.o: cc config_reader.c | active.gen.ninja
+build sv.o: cc sv.c | active.gen.ninja
+build xo_describe.o: cc xo_describe.c | active.gen.ninja
 
-build out/front/baker.o:            cc src/front/baker.c
-build out/front/info.o:             cc src/front/info.c
-build out/front/jack.o:             cc src/front/jack.c
-build out/front/ladspa.o:           cc src/front/ladspa.c
-  defines = $defines $ladspa
-
-build include/xod/xod.gen.h $
-      out/xod/xod.c:                bison src/xod/xod.y
-    outh = include/xod/xod.gen.h
-    outc = out/xod/xod.c
-
-build include/xod/keywords.gen.h:   gperf src/xod/keywords.gperf
-
-build out/xod/xod.o:                cc out/xod/xod.c
-build out/xod/lex.o:                cc src/xod/lex.c | include/xod/xod.gen.h include/xod/keywords.gen.h
-build out/xod/cli.o:                cc src/xod/cli.c
-build out/xod/front/dummy.o:        cc src/xod/front/dummy.c
-build out/xod/front/ladspa.o:       cc src/xod/front/ladspa.c
-  defines = $defines $ladspax
-build out/xod/front/jack.o:         cc src/xod/front/jack.c
+# xod/...sources
+build xod/xod.gen.h xod/xod.gen.c: bison xod/xod.y | active.gen.ninja
+  outh = xod/xod.gen.h
+  outc = xod/xod.gen.c
+build xod/keywords.gen.h: gperf xod/keywords.gperf | active.gen.ninja
+build xod/lex.o: cc xod/lex.c | active.gen.ninja
+build xod/xod.gen.o: cc xod/xod.gen.c | xod/keywords.gen.h
 
 # ...outputs
-build xo-jack:                      bin $
-    out/front/jack.o out/xo.o out/config_reader.o
+build xo-jack: bin jack_frontend.c xo.o config_reader.o | active.gen.ninja
   libs = -ljack
+build xo.so: so ladspa_frontend.c xo.o config_reader.o | active.gen.ninja
+  cflags = $cflags -fno-sanitize=all
+  defines = $defines $ladspa
+build xo-info: bin info_frontend.c xo.o config_reader.o xo_describe.o | active.gen.ninja
 
-build xo.so:                        so $
-    out/front/ladspa.o out/xo.o out/config_reader.o
-
-build xo-info:                      bin $
-    out/front/info.o out/xo.o out/config_reader.o out/xo_describe.o
-
-build xod:                          bin $
-    out/xod/cli.o
+# xod/...outputs
+build xod/xod-cli: bin xod/cli.c
   libs = -lreadline
-
-build xo-xod-dummy:                 bin $
-    out/xod/front/dummy.o out/xod/xod.o out/xod/lex.o $
-    out/xo.o out/xo_describe.o out/config_reader.o
+build xod/xo-dummy: bin xod/dummy.c xod/xod.gen.o xod/lex.o xo.o xo_describe.o config_reader.o | active.gen.ninja
   libs = -lm
-
-build xo-xod.so:                    so $
-    out/xod/front/ladspa.o out/xod/xod.o out/xod/lex.o $
-    out/xo.o out/config_reader.o
-
-build xo-xod-jack:                  bin $
-    out/xod/front/jack.o out/xod/xod.o out/xod/lex.o $
-    out/xo.o out/xo_describe.o
+build xod/xo-xod.so: so xod/ladspa.c xod/xod.gen.o xod/lex.o xo.o config_reader.o | active.gen.ninja
+  cflags = $cflags -fno-sanitize=all
+  defines = $defines $ladspax
+build xod/xo-jack: bin xod/jack.c xod/xod.gen.o xod/lex.o xo_describe.o xo.o | active.gen.ninja
   libs = -ljack -lm
 
 # toplevel
-build all-xo: phony xo-jack xo.so xo-info
-build all-xod: phony xod xo-xod-dummy xo-xod.so xo-xod-jack
+build xod: phony xod/xod-cli xod/xo-xod.so xod/xo-dummy | active.gen.ninja
+build all: phony xo-jack xo.so xo-info xod | active.gen.ninja
 
-build all: phony all-xo all-xod
-
-default all
+default xo-jack xo.so xod/xo-xod.so xod/xod-cli
