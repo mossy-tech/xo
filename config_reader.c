@@ -157,7 +157,6 @@ struct xo * xo_config_load_file(struct xo * xo,
                 coefs[0], coefs[1], coefs[2],
                 coefs[3], coefs[4],
                 1,
-                1,
                 type);
     }
     

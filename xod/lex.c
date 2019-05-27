@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <float.h>
 
 #include "lex.h"
@@ -28,6 +29,7 @@
 
 #include "../xo.h"
 
+#define ISCOMMENT(c) (c == '#')
 #define ISWHITE(c) (c == ' ')
 #define ISBREAK(c) (c == ';' || c == '\n')
 
@@ -49,6 +51,11 @@ static struct token tokenize(const char ** sptr)
         return (struct token) { s, 1 };
     }
 
+    // handle comments (as if end of string)
+    if (ISCOMMENT(*s)) {
+        return (struct token) { NULL };
+    }
+
     // move to next boundary (end, white, ';')
     for (e = s; *e && !ISWHITE(*e) & !ISBREAK(*e); e++);
 
@@ -68,10 +75,10 @@ static bool token_get_keyword(struct token token, enum yytokentype * result)
     return false;
 }
 
-static bool token_get_integer(struct token token, long * result)
+static bool token_get_integer(struct token token, int64_t * result)
 {
     char * endptr;
-    long n = strtol(token.start, &endptr, 0);
+    int64_t n = strtol(token.start, &endptr, 0);
     size_t l = endptr - token.start;
     if (l == token.length) {
         *result = n;

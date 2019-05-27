@@ -29,7 +29,10 @@
 
 #define SOCKMOD 0660
 
-#include "config.h"
+#ifndef DEFAULT_SOCKPATH
+#define DEFAULT_SOCKPATH PREFIX "share/xo/xod.sock"
+#endif /* DEFAULT_SOCKPATH */
+
 #include "color.h"
 
 #include <readline/readline.h>
@@ -163,7 +166,7 @@ int main(int argc, char ** argv)
         { 0, 0, 0, 0 }
     };
 
-    const char * srcname;
+    const char * srcname = NULL;
     FILE * src = NULL;
 
     int option_index = 0;
@@ -241,12 +244,12 @@ int main(int argc, char ** argv)
     }
 
     struct sockaddr_un address;
+    memset(&address, 0, sizeof(address));
     address.sun_family = AF_UNIX;
-    strcpy(&address.sun_path[0], sockpath);
+    strncpy(&address.sun_path[0], sockpath, sizeof(address.sun_path) - 1);
 
     if (bind(sock, (struct sockaddr *)&address,
-                offsetof(struct sockaddr_un, sun_path) +
-                strlen(sockpath) + 1)) {
+                sizeof(address)) == -1) {
         PRINT(stderr, "%serror binding %s!%s\n",
                 c_err(), sockpath, c_off());
         close(sock);

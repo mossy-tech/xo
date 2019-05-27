@@ -63,8 +63,8 @@ struct xo * xo_from(struct xo * from)
 
 	for (size_t j = 0; j < from->chains[i].n_filters; j++) {
 	    to->chains[i].filters[j] = from->chains[i].filters[j];
-	    to->chains[i].filters[j].z0 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
-	    to->chains[i].filters[j].z1 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
+//	    to->chains[i].filters[j].z0 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
+//	    to->chains[i].filters[j].z1 = malloc(sizeof(float_type) * to->chains[i].filters[j].order);
 	}
     }
     return to;
@@ -105,7 +105,6 @@ struct filter * xo_add_filter_to_chain(struct xo * xo)
 void xo_filter_set(struct filter * f,
         float_type a0, float_type a1, float_type a2,
         float_type b1, float_type b2,
-        size_t order,
         size_t over,
         enum filter_type type)
 {
@@ -115,9 +114,9 @@ void xo_filter_set(struct filter * f,
         .a2 = a2,
         .b1 = b1,
         .b2 = b2,
-        .z0 = malloc(sizeof(float_type) * order),
-        .z1 = malloc(sizeof(float_type) * order),
-        .order = order,
+//        .z0 = malloc(sizeof(float_type) * order),
+//        .z1 = malloc(sizeof(float_type) * order),
+//        .order = order,
         .over = over,
         .type = type
     };
@@ -129,10 +128,14 @@ void xo_reset(struct xo * xo)
 	struct chain * chain = &xo->chains[i];
 	for (size_t j = 0; j < chain->n_filters; j++) {
 	    struct filter * filter = &chain->filters[j];
+            /*
             for (size_t i = 0; i < filter->order; i++) {
                 filter->z0[i] = 0.;
                 filter->z1[i] = 0.;
             }
+            */
+            filter->z0 = 0.;
+            filter->z1 = 0.;
 	}
     }
 }
@@ -140,9 +143,9 @@ void xo_reset(struct xo * xo)
 static float_type step_biquad(struct filter * f, float_type d)
 {
     float_type y;
-    y = f->z0[0] + d * f->a0;
-    f->z0[0] = f->z1[0] + d * f->a1 - y * f->b1;
-    f->z1[0] = d * f->a2 - y * f->b2;
+    y = f->z0 + d * f->a0;
+    f->z0 = f->z1 + d * f->a1 - y * f->b1;
+    f->z1 = d * f->a2 - y * f->b2;
     return y;
 }
 
@@ -153,15 +156,12 @@ static float_type step_sv_lp(struct filter * f, float_type d)
      * z0 = hp * f + z0
      * z1 = lp
      */
-    for (size_t i = 0; i < f->order; i++) {
-        for (size_t j = 0; j < f->over; j++) {
-            f->z1[i] += f->z0[i] * f->a0;
-            float_type hp = d - f->z1[i] - f->a1 * f->z0[i];
-            f->z0[i] += f->a0 * hp;
-        }
-        d = f->z1[i];
+    for (size_t j = 0; j < f->over; j++) {
+        f->z1 += f->z0 * f->a0;
+        float_type hp = d - f->z1 - f->a1 * f->z0;
+        f->z0 += f->a0 * hp;
     }
-    return d;
+    return f->z1;
 }
 
 static float_type step_sv_hp(struct filter * f, float_type d)
@@ -171,16 +171,13 @@ static float_type step_sv_hp(struct filter * f, float_type d)
      * z0 = hp * f + z0
      * z1 = lp
      */
-    for (size_t i = 0; i < f->order; i++) {
-        float_type hp;
-        for (size_t j = 0; j < f->over; j++) {
-            f->z1[i] += f->z0[i] * f->a0;
-            hp = d - f->z1[i] - f->a1 * f->z0[i];
-            f->z0[i] += f->a0 * hp;
-        }
-        d = hp;
+    float_type hp;
+    for (size_t j = 0; j < f->over; j++) {
+        f->z1 += f->z0 * f->a0;
+        hp = d - f->z1 - f->a1 * f->z0;
+        f->z0 += f->a0 * hp;
     }
-    return d;
+    return hp;
 }
 
 void xo_process_chain(struct xo * xo,
@@ -234,8 +231,54 @@ void xo_process_chain(struct xo * xo,
 
 void xo_filter_unity(struct filter * f){
     *f = (struct filter) {
-        .order = 0,
+        .over = 0,
         .type = XO_FILTER_SV_LP
     };
+}
+
+void xo_replicate_filter(struct xo * xo, size_t count)
+{
+    struct chain * c = &xo->chains[xo->n_chains - 1];
+    struct filter * f = &c->filters[c->n_filters - 1];
+    for (size_t i = 0; i < count; i++) {
+        *xo_add_filter_to_chain(xo) = *f;
+    }
+}
+
+/* moved from sv.c */
+void xo_correct(struct xo * xo, float_type sample_rate)
+{
+    for (size_t i = 0; i < xo->n_chains; i++) {
+        struct chain * chain = &xo->chains[i];
+        for (size_t j = 0; j < chain->n_filters; j++) {
+            struct filter * filter = &chain->filters[j];
+
+            /*
+            if (!filter->z0 && filter->order)
+                filter->z0 = malloc(sizeof(float_type) * filter->order);
+
+            if (!filter->z1 && filter->order)
+                filter->z1 = malloc(sizeof(float_type) * filter->order);
+
+            for (size_t i = 0; i < filter->order; i++) {
+                filter->z0[i] = 0.;
+                filter->z1[i] = 0.;
+            }
+            */
+
+            if (filter->type == XO_FILTER_SV_HP ||
+                filter->type == XO_FILTER_SV_LP) {
+//                fprintf(stderr, "adjust\n");
+
+                if (filter->a0 > CAT(M_PIf, FP)) {
+                    filter->a0 = 2 * CAT(sinf, FP)(
+                            CAT(M_PIf, FP) * filter->a0 / (sample_rate * filter->over));
+
+                    filter->a1 = 1. / filter->a1;
+                }
+            }
+        }
+    }
+//    xo_describe(xo, printf, 1, 0);
 }
 

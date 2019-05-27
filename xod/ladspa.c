@@ -213,14 +213,14 @@ static void connect_port(LADSPA_Handle instance,
     userdata->data[Port] = location;
 }
 
-/*
 static void activate(
     LADSPA_Handle instance)
 {
     fprintf(stderr, LABEL ": activated.\n");
-    // do nothing
+    xo_reset(((struct userdata *)instance)->xo);
 }
 
+/*
 static void deactivate(LADSPA_Handle instance)
 {
     fprintf(stderr, LABEL ": deactivated.\n");
@@ -281,7 +281,7 @@ extern const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
 
         .instantiate = &instantiate,
         .connect_port = &connect_port,
-        .activate = NULL,
+        .activate = &activate,
         .run = &run,
         .run_adding = NULL,
         .set_run_adding_gain = NULL,

@@ -1,36 +1,75 @@
 prefix = /usr/local
 
-baseflags = -Wall -flto
+baseflags = -Wall -flto -I.
 sanflags = -fsanitize=address,undefined
 limiter = 0
 
 include active.gen.ninja
 
 ladspa = -DUNIQUE_ID=9000 -DLABEL='"xo"' -DNAME='"XO (FP-$fp)"'
-defines = -DFP=$fp -DVERSION="\"$$(git describe --dirty)+fp$fp$suffix\"" -DLIMITER=$limiter
+ladspax = -DUNIQUE_ID=9001 -DLABEL='"xo-xod"' -DNAME='"XO+xod (FP-$fp)"'
+defines = $defines -DFP=$fp
+defines = $defines -DVERSION="\"$$(git describe --dirty)+fp$fp$suffix\""
+defines = $defines -DLIMITER=$limiter
+defines = $defines -DDEFAULT_SOCKPATH='"$sockpath"'
+
 
 rule cc
+  deps = gcc
   depfile = $out.d
   command = gcc -MMD -MF $out.d $cflags $defines $in -c -o $out
 
 rule bin
+  deps = gcc
   depfile = $out.d
   command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
 
 rule so
+  deps = gcc
   depfile = $out.d
   command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
 
+rule bison
+  command = bison -Wall --defines=$outh -o $outc $in
+
+rule gperf
+  command = gperf $in --output-file=$out
+
+# ...sources
 build xo.o: cc xo.c | active.gen.ninja
 build config_reader.o: cc config_reader.c | active.gen.ninja
 build sv.o: cc sv.c | active.gen.ninja
+build xo_describe.o: cc xo_describe.c | active.gen.ninja
 
+# xod/...sources
+build xod/xod.gen.h xod/xod.gen.c: bison xod/xod.y | active.gen.ninja
+  outh = xod/xod.gen.h
+  outc = xod/xod.gen.c
+build xod/keywords.gen.h: gperf xod/keywords.gperf | active.gen.ninja
+build xod/lex.o: cc xod/lex.c | active.gen.ninja
+build xod/xod.gen.o: cc xod/xod.gen.c | xod/keywords.gen.h
+
+# ...outputs
 build xo-jack: bin jack_frontend.c xo.o config_reader.o | active.gen.ninja
   libs = -ljack
-
 build xo.so: so ladspa_frontend.c xo.o config_reader.o | active.gen.ninja
   cflags = $cflags -fno-sanitize=all
   defines = $defines $ladspa
+build xo-info: bin info_frontend.c xo.o config_reader.o xo_describe.o | active.gen.ninja
 
-default xo-jack xo.so
+# xod/...outputs
+build xod/xod-cli: bin xod/cli.c
+  libs = -lreadline
+build xod/xo-dummy: bin xod/dummy.c xod/xod.gen.o xod/lex.o xo.o xo_describe.o config_reader.o | active.gen.ninja
+  libs = -lm
+build xod/xo-xod.so: so xod/ladspa.c xod/xod.gen.o xod/lex.o xo.o config_reader.o | active.gen.ninja
+  cflags = $cflags -fno-sanitize=all
+  defines = $defines $ladspax
+build xod/xo-jack: bin xod/jack.c xod/xod.gen.o xod/lex.o xo_describe.o xo.o | active.gen.ninja
+  libs = -ljack -lm
 
+# toplevel
+build xod: phony xod/xod-cli xod/xo-xod.so xod/xo-dummy | active.gen.ninja
+build all: phony xo-jack xo.so xo-info xod | active.gen.ninja
+
+default xo-jack xo.so xod/xo-xod.so xod/xod-cli
