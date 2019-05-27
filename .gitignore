@@ -6,6 +6,4 @@ xod-*
 *.gen.*
 *.ignore
 *.ignore.*
-.ninja*
-*.o
-*.d
+out/
