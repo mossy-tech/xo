@@ -146,6 +146,18 @@ int handle_connection(int peer, FILE * src)
     }
 }
 
+static void show_help()
+{
+    printf("Options:\n");
+    printf("--version|-V\n");
+    printf("--quiet|-q\n");
+    printf("--single|-s\n");
+    printf("--no-single|-l\n");
+    printf("--file|-f\n");
+    printf("--path|-p\n");
+    printf("--help|-h\n");
+}
+
 int main(int argc, char ** argv)
 {
     int listen_mode = 'd';
@@ -163,6 +175,8 @@ int main(int argc, char ** argv)
 
         { "path", required_argument, 0, 'p' },
 
+        { "help", no_argument, 0, 'h' },
+
         { 0, 0, 0, 0 }
     };
 
@@ -171,7 +185,7 @@ int main(int argc, char ** argv)
 
     int option_index = 0;
     char c;
-    while ((c = getopt_long(argc, argv, "Vqslf:",
+    while ((c = getopt_long(argc, argv, "Vqslf:p:h",
                     long_options, &option_index)) != -1)
     {
         switch (c) {
@@ -198,6 +212,9 @@ int main(int argc, char ** argv)
             case 'p':
                 sockpath = optarg;
                 break;
+            case 'h':
+                show_help();
+                exit(1);
             case '?':
                 exit(1);
             default:
@@ -258,8 +275,10 @@ int main(int argc, char ** argv)
 
     chmod(sockpath, SOCKMOD);
 
-    PRINT(stderr, "%sbound %s%s,\n",
-            c_info(), sockpath, c_off());
+    if (!quiet) {
+        PRINT(stderr, "%sbound %s%s,\n",
+                c_info(), sockpath, c_off());
+    }
 
     if (listen(sock, 1)) {
         PRINT(stderr ,"%serror listening%s!\n",

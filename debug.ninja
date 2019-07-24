@@ -1,4 +1,4 @@
 suffix = +debug
-cflags = $baseflags -g -Og $sanflags
+cflags = $cflags -g -Og $sanflags
 sockpath = ./xod.sock
 fp = 128

@@ -1,4 +1,4 @@
 suffix =
-cflags = $baseflags -O2 -Werror -DNDEBUG
+cflags = $cflags -O2 -Werror -DNDEBUG
 sockpath = /tmp/xod.sock
 fp = 128
