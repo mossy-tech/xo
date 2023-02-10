@@ -83,7 +83,7 @@ struct xo * xo_config_load_file(struct xo * xo,
     
     static char line [MAX_LINE_LENGTH];
     
-    while (fgets(line, MAX_LINE_LENGTH, fcfg), !feof(fcfg)) {
+    while ((void)fgets(line, MAX_LINE_LENGTH, fcfg), !feof(fcfg)) {
         float_type coefs [5];
         switch (line[0]) {
 	    case '\0':
